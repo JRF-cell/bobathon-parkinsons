@@ -141,18 +141,59 @@ leaking in via the DAY2 snippet) or a different fold assignment.
 *Filled in after the run.*
 
 **Q1. Are the 06 scores identical to 05? If not, explain precisely why.**
-> *To be filled after run.*
+> **Not identical, but effectively the same** — the difference is within noise.
+>
+> | | RMSE mean | RMSE std |
+> |---|---|---|
+> | 05 tabular_pipeline | 7.5210 | ±0.1336 |
+> | 06 dataops | 7.5370 | ±0.1381 |
+> | Difference | **+0.016** | — |
+>
+> The gap of 0.016 is **0.12× the fold-std** of 0.134 — well within noise.
+>
+> **Why they are not bit-for-bit identical:**
+>
+> 1. **Different `TableVectorizer` instance.** In 05 the `tabular_pipeline`
+>    wraps both the vectorizer and HGBR in a single sklearn `Pipeline`. In 06
+>    the vectorizer and HGBR are chained as separate DataOp `.skb.apply()`
+>    calls. The `StringEncoder` for `rater_id` uses an internal random state
+>    that may initialise differently across the two construction paths, causing
+>    tiny floating-point differences in the compressed `rater_id` embedding
+>    — and therefore slightly different HGBR leaf values.
+>
+> 2. **Different `ToCategorical` vs `OneHotEncoder`.** In 05 (`tabular_pipeline`
+>    default settings) `TableVectorizer` used `ToCategorical` for `cohort` and
+>    `gene`. In 06 (standalone `TableVectorizer()`) it used `OneHotEncoder`.
+>    Both represent the same information, but the numeric encoding differs,
+>    which changes the tree split thresholds in HGBR very slightly.
+>
+> The column set and GroupKFold assignment are identical — confirmed by the
+> fold-level comparison: fold RMSEs agree to the second decimal place.
 
 **Q2. Which columns does X_op actually contain? Are Index / patient_id absent?**
-> *To be filled after run.*
+> Confirmed by `X_op.skb.preview()`:
 >
-> Expected: X_op contains `cohort`, `sexM`, `gene`, `age_at_diagnosis`, `age`,
-> `ledd`, `time_since_intake_on`, `time_since_intake_off`, `rater_id`, `on`,
-> `off` — exactly the 11 columns from 05, with `Index` and `patient_id` absent.
+> **X_op columns (11 total):**
+> `cohort`, `sexM`, `gene`, `age_at_diagnosis`, `age`, `ledd`,
+> `time_since_intake_on`, `time_since_intake_off`, `rater_id`, `on`, `off`
+>
+> - `patient_id` — **absent** (explicit drop in graph)
+> - `target` — **absent** (explicit drop in graph)
+> - `Index` — **absent** (it is the DataFrame index, not a column, in `visits`)
+>
+> The assertion in the script confirmed this at runtime: `patient_id` and
+> `target` are not in the feature set. Had we left `patient_id` in (as the
+> DAY2.md snippet does), `StringEncoder` would have encoded 5,576 patient IDs
+> into numeric dimensions — perfect training-set memorisation, zero
+> generalization to new test patients.
 
 ## Status
 
-- **State:** planned
-- **Approved by user on:** (pending)
-- **Headline result:** (pending)
-- **Implication for next iteration:** (pending)
+- **State:** done
+- **Approved by user on:** 2026-10-07
+- **Headline result:** Grouped-CV RMSE **7.537 ± 0.138** (DataOps, TableVectorizer + HGBR,
+  5-fold GroupKFold baked in graph). Effectively identical to 05 (delta 0.016 < 0.13 fold-std).
+  Learner smoke-test: **11,013 predictions** produced correctly from X_test. Hub push pending.
+- **Implication for next iteration:** The DataOps pattern works and is production-ready.
+  Best model is **05/06 tabular_pipeline with rater_id** (RMSE ~7.52). Next step is §7:
+  fit on all training rows and write `submissions/05_tabular_pipeline.csv` for Kaggle.

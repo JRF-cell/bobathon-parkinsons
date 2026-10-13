@@ -12,8 +12,8 @@ stem).
 
 - **Project / dataset:** Parkinson's UPDRS score regression
 - **Goal:** Predict UPDRS motor scores for Parkinson's patients from clinical features (longitudinal data, multiple visits per patient).
-- **Last experiment:** 05_tabular_pipeline - done
-- **Last result:** RMSE 7.521 (grouped-CV 5-fold, tabular_pipeline all cols incl. rater_id) — −54.4 % vs dummy
+- **Last experiment:** 06_dataops - done
+- **Last result:** RMSE 7.537 (grouped-CV 5-fold, DataOps graph, TableVectorizer+HGBR) — effectively same as 05
 
 - **Workspace decisions** (immutable unless the user pivots):
   - tabular library: pandas - recorded: 2026-10-07
@@ -42,6 +42,7 @@ stem).
 | 02 | ridge | done | RMSE 10.49, MAE 8.44, R²=0.595 (80/20 visit holdout, alpha=0.01, numeric cols) — −36.3 % vs dummy | [journal/02_ridge.md](02_ridge.md) |
 | 04 | hgbr | done | RMSE 7.75 ± 0.15 (grouped-CV 5-fold, native NaN) vs Ridge 10.60 ± 0.27 — delta 2.84, wins 5/5 folds, −53.0 % vs dummy | [journal/04_hgbr.md](04_hgbr.md) |
 | 05 | tabular_pipeline | done | RMSE 7.521 ± 0.134 (grouped-CV 5-fold, all cols + rater_id via StringEncoder) — delta −0.231 vs numeric HGBR, wins 5/5 folds, −54.4 % vs dummy | [journal/05_tabular_pipeline.md](05_tabular_pipeline.md) |
+| 06 | dataops | done | RMSE 7.537 ± 0.138 (grouped-CV 5-fold, DataOps graph, same cols as 05) — diff +0.016 vs 05 (< 1 fold-std, within noise); learner smoke-test 11013 rows OK | [journal/06_dataops.md](06_dataops.md) |
 
 ## Backlog
 
