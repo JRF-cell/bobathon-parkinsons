@@ -12,8 +12,8 @@ stem).
 
 - **Project / dataset:** Parkinson's UPDRS score regression
 - **Goal:** Predict UPDRS motor scores for Parkinson's patients from clinical features (longitudinal data, multiple visits per patient).
-- **Last experiment:** 01_dummy - done
-- **Last result:** RMSE 16.48 (80/20 visit holdout, DummyRegressor mean)
+- **Last experiment:** 05_tabular_pipeline - done
+- **Last result:** RMSE 7.521 (grouped-CV 5-fold, tabular_pipeline all cols incl. rater_id) — −54.4 % vs dummy
 
 - **Workspace decisions** (immutable unless the user pivots):
   - tabular library: pandas - recorded: 2026-10-07
@@ -39,6 +39,9 @@ stem).
 | NN | Name | Status | Headline metric | Design note |
 |---|---|---|---|---|
 | 01 | dummy | done | RMSE 16.48, MAE 13.48, R²≈0 (80/20 visit holdout) | [journal/01_dummy.md](01_dummy.md) |
+| 02 | ridge | done | RMSE 10.49, MAE 8.44, R²=0.595 (80/20 visit holdout, alpha=0.01, numeric cols) — −36.3 % vs dummy | [journal/02_ridge.md](02_ridge.md) |
+| 04 | hgbr | done | RMSE 7.75 ± 0.15 (grouped-CV 5-fold, native NaN) vs Ridge 10.60 ± 0.27 — delta 2.84, wins 5/5 folds, −53.0 % vs dummy | [journal/04_hgbr.md](04_hgbr.md) |
+| 05 | tabular_pipeline | done | RMSE 7.521 ± 0.134 (grouped-CV 5-fold, all cols + rater_id via StringEncoder) — delta −0.231 vs numeric HGBR, wins 5/5 folds, −54.4 % vs dummy | [journal/05_tabular_pipeline.md](05_tabular_pipeline.md) |
 
 ## Backlog
 
