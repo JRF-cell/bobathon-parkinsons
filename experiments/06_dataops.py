@@ -44,7 +44,6 @@ except Exception as _hub_err:
 
 # %%
 import pandas as pd
-import numpy as np
 
 X_raw, y = load_dataset()
 
@@ -69,10 +68,12 @@ print(f"visits columns: {visits.columns.tolist()}")
 #    attached to the correct rows inside the graph.
 # 3. cv=GroupKFold(n_splits=5) and split_kwargs={"groups": groups} are
 #    passed to mark_as_X so they live on the graph node, not a separate list.
+# 4. The model is skrub.tabular_pipeline("regressor"), exactly as in 05, so any
+#    score difference comes from the graph and not from different encoders
+#    (a bare TableVectorizer one-hot encodes cohort/gene instead).
 
 # %%
 import skrub
-from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.model_selection import GroupKFold
 
 data   = skrub.var("visits", visits)
@@ -90,11 +91,7 @@ X_op = (
 
 y_op = data["target"].skb.mark_as_y()
 
-pred = (
-    X_op
-    .skb.apply(skrub.TableVectorizer())
-    .skb.apply(HistGradientBoostingRegressor(random_state=0), y=y_op)
-)
+pred = X_op.skb.apply(skrub.tabular_pipeline("regressor"), y=y_op)
 
 print("DataOp graph built successfully.")
 
@@ -108,8 +105,8 @@ print(f"Columns in X_op: {X_preview.columns.tolist()}")
 print(f"Shape: {X_preview.shape}")
 assert "patient_id" not in X_preview.columns, "patient_id must not be in features!"
 assert "target"     not in X_preview.columns, "target must not be in features!"
-assert "Index"      not in X_preview.columns or X_preview.index.name == "Index", \
-    "Index must not be a feature column (may be the DataFrame index)!"
+# Index is the DataFrame index of `visits` (load_dataset uses index_col), never a column
+assert "Index"      not in X_preview.columns, "Index must not be a feature column!"
 print("Checks passed: patient_id and target are absent from X_op.")
 
 # %% [markdown]
@@ -128,9 +125,22 @@ print(report.metrics.summarize())
 # %% [markdown]
 # ## Compare with experiment 05
 
+#
+# 05 is re-run here on the same rows and the same GroupKFold folds instead of
+# using a hard-coded score: the StringEncoder on rater_id is unseeded, so
+# scores drift slightly between runs.
+
 # %%
-EXP05_RMSE = 7.5210
-EXP05_STD  = 0.1336
+cv_splits = list(GroupKFold(n_splits=5).split(X_raw, y, groups=X_raw["patient_id"]))
+exp05_report = skore.evaluate(
+    skrub.tabular_pipeline("regressor"),
+    X_raw.drop(columns=["patient_id"]),
+    y,
+    splitter=cv_splits,
+)
+exp05_rmse_df = exp05_report.metrics.rmse()
+EXP05_RMSE = float(exp05_rmse_df.iloc[0, 0])
+EXP05_STD  = float(exp05_rmse_df.iloc[0, 1])
 
 diff = rmse_mean - EXP05_RMSE
 print(f"\n=== Comparison with 05_tabular_pipeline ===")
@@ -164,11 +174,11 @@ print("\nFitting learner on full training set ...")
 learner = pred.skb.make_learner()
 learner.fit({"visits": visits})
 
-# Inspect TableVectorizer encoders by fitting a standalone instance on X_op.
-# X_op.skb.eval() returns the evaluated feature DataFrame.
+# Inspect the encoders by fitting the same tabular_pipeline on X_op
+# (X_op.skb.eval() returns the evaluated feature DataFrame), as in 05.
 X_for_tv = X_op.skb.eval()
-tv_inspector = skrub.TableVectorizer()
-tv_inspector.fit(X_for_tv, y)
+inspector = skrub.tabular_pipeline("regressor").fit(X_for_tv, y)
+tv_inspector = inspector.named_steps["tablevectorizer"]
 print(f"\nTableVectorizer encoders (cardinality_threshold={tv_inspector.cardinality_threshold}):")
 for col, enc in tv_inspector.transformers_.items():
     kind = [k for k, cols in tv_inspector.kind_to_columns_.items() if col in cols]

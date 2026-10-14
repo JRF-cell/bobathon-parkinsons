@@ -96,10 +96,10 @@ X_op = data.drop("target", axis=1, errors="ignore")  \
 
   y_op = data["target"].skb.mark_as_y()
 
-  pred = (X_op
-      .skb.apply(skrub.TableVectorizer())
-      .skb.apply(HistGradientBoostingRegressor(random_state=0), y=y_op))
+  pred = X_op.skb.apply(skrub.tabular_pipeline("regressor"), y=y_op)
   ```
+  (The first run applied a bare `TableVectorizer()` then HGBR; see the update
+  under Q1.)
 
 - **Evaluation:** `skore.evaluate(pred)` — **no `splitter=`**. skore reads
   `cv` and `split_kwargs` from the graph.
@@ -125,7 +125,7 @@ X_op = data.drop("target", axis=1, errors="ignore")  \
 |---|---|---|
 | Feature table | `X_raw.drop(["patient_id"])` | DataOp drops `target` + `patient_id` |
 | CV | pre-built `cv_splits` list | baked into graph via `mark_as_X` |
-| Encoder | `tabular_pipeline` (TableVectorizer + HGBR) | `TableVectorizer` + bare HGBR |
+| Encoder | `tabular_pipeline` (TableVectorizer + HGBR) | same `tabular_pipeline`, applied in the graph |
 | `rater_id` | present | present |
 | Expected RMSE | 7.521 | ~7.521 (should match if column set is identical) |
 
@@ -169,6 +169,13 @@ leaking in via the DAY2 snippet) or a different fold assignment.
 >
 > The column set and GroupKFold assignment are identical — confirmed by the
 > fold-level comparison: fold RMSEs agree to the second decimal place.
+>
+> **Update (2026-10-14):** cause 2 is removed. The graph now applies the same
+> `skrub.tabular_pipeline("regressor")` as 05, and the script re-runs 05 on
+> the same folds instead of comparing with the hard-coded 7.5210. On synthetic
+> data with the competition schema, 05 and 06 then gave identical scores. On
+> the real data, the unseeded `StringEncoder` for `rater_id` (50 raters) and
+> the factory's unseeded HGBR can still leave a tiny gap (cause 1).
 
 **Q2. Which columns does X_op actually contain? Are Index / patient_id absent?**
 > Confirmed by `X_op.skb.preview()`:
@@ -194,6 +201,8 @@ leaking in via the DAY2 snippet) or a different fold assignment.
 - **Headline result:** Grouped-CV RMSE **7.537 ± 0.138** (DataOps, TableVectorizer + HGBR,
   5-fold GroupKFold baked in graph). Effectively identical to 05 (delta 0.016 < 0.13 fold-std).
   Learner smoke-test: **11,013 predictions** produced correctly from X_test. Hub push pending.
-- **Implication for next iteration:** The DataOps pattern works and is production-ready.
+  The headline is from the first version (bare `TableVectorizer` + HGBR);
+  re-run the updated script for the current figure.
+- **Implication for next iteration:** The DataOps pattern works and reproduces 05.
   Best model is **05/06 tabular_pipeline with rater_id** (RMSE ~7.52). Next step is §7:
   fit on all training rows and write `submissions/05_tabular_pipeline.csv` for Kaggle.

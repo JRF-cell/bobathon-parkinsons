@@ -41,7 +41,6 @@ except Exception as _hub_err:
 
 # %%
 import pandas as pd
-import numpy as np
 
 X_full, y = load_dataset()
 
@@ -65,8 +64,8 @@ print(X.isna().mean().round(3).to_string())
 # ## Grouped CV splits
 #
 # GroupKFold on patient_id ensures entire patients go to one side only.
-# cv_splits is a list of (train_idx, test_idx) pairs — identical structure
-# to what experiment 03 would produce, so results are directly comparable.
+# cv_splits is a list of (train_idx, test_idx) pairs — reused unchanged by
+# experiment 05, so results are directly comparable.
 
 # %%
 from sklearn.model_selection import GroupKFold
@@ -230,7 +229,6 @@ else:
 # ## Final model + submission (only if HGBR beats Ridge by > 1 fold-std)
 
 # %%
-from pathlib import Path
 from sklearn.base import clone
 
 if beats_by_more_than_std:

@@ -45,7 +45,6 @@ except Exception as _hub_err:
 
 # %%
 import pandas as pd
-import numpy as np
 
 X_raw, y = load_dataset()
 

@@ -145,3 +145,30 @@ checks also verified matching 58-column train/test feature schemas, no
 infinite numeric features and outer-fold patient isolation. The actual
 completion script and independent ensemble CV both completed successfully.
 Authenticated setup tests were not run during this merge.
+
+## Follow-up changes after the merge
+
+The sections above describe the merged state. The completion script was then
+simplified, and its remaining report gap closed:
+
+- **Ensemble as an estimator.** `SpecialistRegressor` and a new
+  `EnsembleRegressor` are scikit-learn estimators. The script evaluates the
+  ensemble itself with Skore over the same five `GroupKFold` splits and pushes
+  `07_features_optimized_ensemble_cv` plus the last fold's EstimatorReport,
+  `07_features_optimized_ensemble`. The component-B-only reports and the
+  printed historical constants are no longer produced.
+- **Clipping inside the model.** `EnsembleRegressor.predict` averages, then
+  clips to [0, 132], so CV scores the exact submission rule described above.
+- **Seed averaging.** `SEEDS = (0, 1, 2)` averages the ensemble over three
+  HGBR seeds to reduce early-stopping variance. With `SEEDS = (0,)` the
+  regenerated CSV was identical (max absolute difference 0.0) to the merged
+  script's on a synthetic dataset with the competition schema.
+- **Dead code removed.** The specialist's full-data fallback was never used
+  (both OFF slices are large in every fold), so it is no longer fitted. The
+  global `warnings.filterwarnings("ignore")` was removed; the synthetic run
+  emitted no warnings.
+
+Scope of verification: no Kaggle data was available, so the scripts were run
+end to end on synthetic data only. The real-data three-seed CV and Kaggle
+score remain to be measured; keep `SEEDS = (0,)` if three seeds do not beat
+4.2176.

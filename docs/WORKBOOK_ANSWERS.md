@@ -251,6 +251,10 @@ The pipelines therefore are not exactly equivalent despite using the same
 raw columns and grouped folds. The small observed gap is not evidence that
 DataOps itself improves or harms prediction.
 
+*Update:* `06_dataops.py` now applies the same `tabular_pipeline("regressor")`
+inside the graph, so the encoder difference is gone; only the unseeded
+StringEncoder/HGBR randomness can still separate the two scores.
+
 ### Q2. What columns are in X_op? Are identifiers absent?
 
 The 11 columns are `cohort`, `sexM`, `gene`, `age_at_diagnosis`, `age`, `ledd`,

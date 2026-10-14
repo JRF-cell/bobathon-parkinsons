@@ -103,6 +103,7 @@ print(f"RMSE range across all alphas: {min(rmses):.4f} – {max(rmses):.4f}  (sp
 # ## Dummy vs best Ridge — side-by-side comparison
 
 # %%
+from sklearn.base import clone
 from sklearn.dummy import DummyRegressor
 
 dummy = DummyRegressor(strategy="mean")
@@ -124,12 +125,11 @@ print(comparison_report.metrics.summarize())
 # ## Ridge coefficients
 #
 # Fit on the full training set to inspect coefficients.
+# Features are deliberately left unscaled (workbook Q3 in journal/02_ridge.md),
+# so coefficient sizes are not comparable across features.
 
 # %%
-inspector = make_pipeline(
-    SimpleImputer(strategy="median"),
-    Ridge(alpha=best_alpha),
-)
+inspector = clone(best_ridge)
 inspector.fit(X, y)
 ridge_model = inspector.named_steps["ridge"]
 coef_series = pd.Series(ridge_model.coef_, index=FEATURE_COLS).sort_values(key=abs, ascending=False)
@@ -150,9 +150,6 @@ else:
 # ## Final model — fit on ALL training visits, predict X_test, write CSV
 
 # %%
-from pathlib import Path
-from sklearn.base import clone
-
 submissions_dir = PROJECT_ROOT / "submissions"
 submissions_dir.mkdir(exist_ok=True)
 

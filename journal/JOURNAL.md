@@ -20,6 +20,11 @@ stem).
   the submission variant now uses the separate key/CSV `07_features_32`.
   Earlier 32-feature verification: **4.4807 ± 0.0653** grouped-CV RMSE for the
   32-feature model; Bob regeneration and a matching Hub URL remain required.
+- **Follow-up (2026-10-14):** the completion script now evaluates and publishes
+  the ensemble itself and averages it over `SEEDS = (0, 1, 2)`; `SEEDS = (0,)`
+  reproduces the 3.966 submission. 06 now applies the same `tabular_pipeline`
+  as 05. Real-data scores for both are still to be measured — see the
+  [merge review follow-up](../docs/OPTIMIZED_MERGE_REVIEW.md#follow-up-changes-after-the-merge).
 - **Project / dataset:** Parkinson's UPDRS score regression
 - **Goal:** Predict UPDRS motor scores for Parkinson's patients from clinical features (longitudinal data, multiple visits per patient).
 - **Last experiment:** 07_features_optimized - done
@@ -49,9 +54,9 @@ stem).
 | 02 | ridge | done | RMSE 10.49, MAE 8.44, R²=0.595 (80/20 visit holdout, alpha=0.01, numeric cols) — −36.3 % vs dummy | [journal/02_ridge.md](02_ridge.md) |
 | 04 | hgbr | done | RMSE 7.75 ± 0.15 (grouped-CV 5-fold, native NaN) vs Ridge 10.60 ± 0.27 — delta 2.84, wins 5/5 folds, −53.0 % vs dummy | [journal/04_hgbr.md](04_hgbr.md) |
 | 05 | tabular_pipeline | done | RMSE 7.521 ± 0.134 (grouped-CV 5-fold, all cols + rater_id via StringEncoder) — delta −0.231 vs numeric HGBR, wins 5/5 folds, −54.4 % vs dummy | [journal/05_tabular_pipeline.md](05_tabular_pipeline.md) |
-| 06 | dataops | done | RMSE 7.537 ± 0.138 (grouped-CV 5-fold, DataOps graph, same cols as 05) — diff +0.016 vs 05 (< 1 fold-std, within noise); learner smoke-test 11013 rows OK | [journal/06_dataops.md](06_dataops.md) |
+| 06 | dataops | done | RMSE 7.537 ± 0.138 (grouped-CV 5-fold, DataOps graph, same cols as 05) — diff +0.016 vs 05 (< 1 fold-std, within noise); learner smoke-test 11013 rows OK; script since aligned on 05's `tabular_pipeline` (re-run pending) | [journal/06_dataops.md](06_dataops.md) |
 | 07 | features | done | RMSE **4.532 ± 0.050** (grouped-CV 5-fold, HGBR lr=0.03/leaves=63/l2=1, all feature groups A+B+C+D) — **−39.8 %** vs raw baseline 7.52; trajectory group alone −2.78 RMSE; submission 07_features.csv | [journal/07_features.md](07_features.md) |
-| 07 | features_optimized | done | RMSE **4.2176 ± 0.0686** (grouped-CV 5-fold, Ensemble specialist+HGBR-opt, lr=0.05/leaves=63/l2=1, 58 cols) — **−5.7 %** vs 07_features 4.472 (re-measured on same splits); age-based interp fix + ON trajectory + PK proxies + specialist routing; submission 07_features_optimized.csv; Hub: 07_features_optimized_cv + 07_features_optimized | [journal/07_features_optimized.md](07_features_optimized.md) |
+| 07 | features_optimized | done | RMSE **4.2176 ± 0.0686** (grouped-CV 5-fold, Ensemble specialist+HGBR-opt, lr=0.05/leaves=63/l2=1, 58 cols) — **−5.7 %** vs 07_features 4.472 (re-measured on same splits); age-based interp fix + ON trajectory + PK proxies + specialist routing; submission 07_features_optimized.csv; Hub (component B only): 07_features_optimized_cv + 07_features_optimized; ensemble reports now pushed as 07_features_optimized_ensemble(_cv) | [journal/07_features_optimized.md](07_features_optimized.md) |
 
 ## Backlog
 

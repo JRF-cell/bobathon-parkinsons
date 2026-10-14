@@ -169,6 +169,11 @@ not exactly the same pipeline. Tiny differences cannot be attributed solely
 to floating-point noise. It fits a full-data learner and smoke-predicts test
 rows, but **does not save a submission CSV**.
 
+*Post-audit update:* the graph now applies `tabular_pipeline("regressor")`,
+the same pipeline as 05, and the script re-evaluates 05 on the same folds
+instead of using a hard-coded score. The encoder difference above no longer
+applies; unseeded StringEncoder/HGBR randomness remains.
+
 ### 07_features.py and 07_features_submit.py
 
 `07_features.py` evaluates incremental groups, then selects among 12 HGBR

@@ -48,10 +48,15 @@ Yanice’s optimized branch, now merged into `main`, is the version associated
 with the team-reported **3.966 Kaggle public score**. Its completion script
 averages two predictors equally: a general HGBR and a specialist that routes
 visits to separate models according to whether the observed OFF score is
-missing. A full-data HGBR is fitted as a fallback for undersized specialist
-slices. Each HGBR uses `learning_rate=0.05`, `max_leaf_nodes=63`,
-`max_iter=1000`, `l2_regularization=1`, `early_stopping=True`, and `random_state=0`.
+missing. Each HGBR uses `learning_rate=0.05`, `max_leaf_nodes=63`,
+`max_iter=1000`, `l2_regularization=1` and `early_stopping=True`.
 Final predictions are clipped to [0, 132].
+
+Since the 3.966 submission, the completion script wraps this average in an
+`EnsembleRegressor` and repeats it over `SEEDS = (0, 1, 2)` to reduce the
+variance of HGBR's random early-stopping split. `SEEDS = (0,)` reproduces the
+3.966 recipe exactly (verified: identical predictions). The three-seed version
+has not yet been scored on the real data or on Kaggle.
 
 The 58 inputs include the raw clinical/categorical features, patient ON/OFF
 summaries, **age-based interpolation**, trajectory slopes, distances to observed
@@ -63,8 +68,9 @@ The earlier experiments, 29/32-feature variants, workbook answers and audit
 remain available. The [optimized merge review](docs/OPTIMIZED_MERGE_REVIEW.md)
 documents the added code, validation checks and remaining limitations:
 selection on reused folds, row-based internal early stopping, batch access to
-patient visits and heuristic medication proxies. The recorded Skore reports
-for the optimized branch evaluate its HGBR component, not the whole ensemble.
+patient visits and heuristic medication proxies. The historical Skore reports
+for the optimized branch evaluate its HGBR component, not the whole ensemble;
+the completion script now evaluates and publishes the ensemble itself.
 
 ## Run the project
 
@@ -112,9 +118,9 @@ The second command uses the selected configuration without repeating the tuning 
 submissions/07_features_optimized.csv
 ```
 
-The script checks the template’s exact columns (`Index,target`), row count, ID order and finite predictions before saving with `index=False`. It also evaluates the HGBR component using grouped CV; its printed ensemble score is explicitly historical. Experiment scripts can publish reports to the configured Skore Hub; generating an offline CSV alone does not establish competition eligibility.
+The script evaluates the submitted ensemble with five-fold grouped CV and prints its RMSE; submit a regenerated CSV only if that score beats the historical **4.2176**. It then checks the template’s exact columns (`Index,target`), row count, ID order and finite predictions before saving with `index=False`. Expect roughly three times the former runtime with three seeds. Experiment scripts can publish reports to the configured Skore Hub; generating an offline CSV alone does not establish competition eligibility.
 
-For a valid Bobathon submission, follow the [official instructions](docs/DAY2.md): generate/review the work in Bob, obtain the **matching EstimatorReport URL**, include it in Kaggle’s Submission Description, and use a fresh report key for each new submission. The report and CSV names must match. The existing optimized Hub reports cover component B only. Obtain a report for the actual ensemble before using a regenerated ensemble CSV for a new competition submission; do not substitute the component report.
+For a valid Bobathon submission, follow the [official instructions](docs/DAY2.md): generate/review the work in Bob, obtain the **matching EstimatorReport URL**, include it in Kaggle’s Submission Description, and use a fresh report key for each new submission. The report and CSV names must match. With Hub access, the completion script pushes `07_features_optimized_ensemble_cv` and `07_features_optimized_ensemble`, a held-out EstimatorReport of the actual ensemble; use the latter's URL. The older component-B reports must not be substituted.
 
 ### 4. Check the setup
 

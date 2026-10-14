@@ -154,10 +154,11 @@ to all new features. Specifically:
 
 ## Historical Hub reports (HGBR component B only)
 
-These reports do not evaluate the ensemble submitted to Kaggle. After merge,
-new component uploads use explicitly named `07_features_optimized_component`
-and `07_features_optimized_component_cv` keys. A new ensemble submission needs
-a matching ensemble report; the existing links are kept as historical evidence.
+These reports do not evaluate the ensemble submitted to Kaggle; the links are
+kept as historical evidence. The completion script now evaluates the ensemble
+itself and pushes `07_features_optimized_ensemble_cv` and
+`07_features_optimized_ensemble` (see the follow-up in the
+[merge review](../docs/OPTIMIZED_MERGE_REVIEW.md#follow-up-changes-after-the-merge)).
 
 - `07_features_optimized_cv` — CrossValidationReport for Model B (HGBR opt features)
   https://skore.probabl.ai/parkinpredict/bobathon-esilv/cross-validations/85766
@@ -188,3 +189,7 @@ a matching ensemble report; the existing links are kept as historical evidence.
   OFF-observed RMSE: 3.682 (vs 3.977). OFF-missing RMSE: 4.852 (vs 5.097).
   Submission: `submissions/07_features_optimized.csv` (11,013 rows).
   Hub CV: `07_features_optimized_cv`. Hub Estimator: `07_features_optimized`.
+- **Follow-up (2026-10-14):** the completion script averages the ensemble over
+  `SEEDS = (0, 1, 2)` and reports the ensemble's own grouped CV.
+  `SEEDS = (0,)` reproduces the submission above exactly. Three-seed real-data
+  CV: *to be measured*.
