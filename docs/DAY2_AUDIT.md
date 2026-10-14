@@ -1,5 +1,10 @@
 # Day 2 audit and Kaggle handoff
 
+> Historical snapshot of the pre-optimized code. Yanice’s optimized branch has
+> since been merged; the current model and score attribution are documented in
+> [OPTIMIZED_MERGE_REVIEW.md](OPTIMIZED_MERGE_REVIEW.md). All original audit
+> results below are retained as evidence for the earlier experiments.
+
 Audited locally on **2026-10-14**, against the pulled code and local CSVs.
 The official [README](https://github.com/probabl-ai/bobathon-esilv),
 [Day 2 guide](https://github.com/probabl-ai/bobathon-esilv/blob/main/docs/DAY2.md),
@@ -12,10 +17,11 @@ The team reports a **Kaggle public score of 3.966** on 2026-10-14 and supplied
 [Skore EstimatorReport 83726](https://skore.probabl.ai/parkinpredict/bobathon-esilv/estimators/83726).
 The report opens a sign-in page in the review environment. Its model identity
 and metrics were not independently inspected, and the exact Kaggle-uploaded
-CSV was not specified. This result is distinct from the local scores below;
+CSV was not specified at that stage. The team later confirmed the score came
+from Yanice’s optimized branch, not the 32-feature model audited here. This result is distinct from the local scores below;
 it is not evidence that the regenerated 32-feature CSV has already been scored.
 
-## Recommendation
+## Original audit recommendation (superseded by optimized branch)
 
 Use the **32-feature TableVectorizer + HistGradientBoostingRegressor** in
 `experiments/07_features_submit.py`. Its independently checked five-fold

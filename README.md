@@ -18,7 +18,7 @@ The main challenges are missing clinical measurements, medication-related measur
 - **Test:** 11,013 visits from 1,395 different patients.
 - **Metric:** root mean squared error (**RMSE**); lower is better.
 - **Competition:** [Bobathon ESILV on Kaggle](https://www.kaggle.com/competitions/bobathon-esilv/).
-- **Kaggle public score:** **3.966**, reported by the team on 2026-10-14. The exact submitted CSV was not identified in the handoff.
+- **Kaggle public score:** **3.966**, reported by the team on 2026-10-14. The team confirmed this score comes from Yanice’s `07-features-optimized-yanice` version, whose completion script produces `07_features_optimized.csv`.
 - **Team report:** [Skore EstimatorReport 83726](https://skore.probabl.ai/parkinpredict/bobathon-esilv/estimators/83726) — supplied by the team; sign-in may be required. A Skore validation report and a Kaggle public leaderboard score are distinct results.
 
 ## Our approach and results
@@ -33,19 +33,38 @@ We started with a mean-predicting baseline, added a linear model, moved to patie
 | [05 — Tabular pipeline](experiments/05_tabular_pipeline.py) | Numeric and categorical features with skrub | 7.5336 ± 0.1372 |
 | [06 — DataOps](experiments/06_dataops.py) | Feature preparation and grouped splitting in a skrub graph | 7.5368 ± 0.1397 |
 | [07 — Feature tuning](experiments/07_features.py) | Patient trajectories and tuned HGBR, 29 features | 4.5329 ± 0.0674 |
-| [07 — Submission variant](experiments/07_features_submit.py) | Tuned HGBR with 32 features | **4.4814 ± 0.0601** |
+| [07 — Earlier submission variant](experiments/07_features_submit.py) | Tuned HGBR with 32 features | 4.4814 ± 0.0601 |
+| [07 — Optimized ensemble](experiments/_07_features_optimized_complete.py) | General HGBR + OFF-missing/observed specialists, 58 features | **4.2176 ± 0.0686**² |
 
 ¹ Day 1/early Ridge use a random 80/20 visit split and can share patients across both sides. They are educational baselines, not directly comparable unseen-patient estimates. Ridge evaluated with grouped CV scores **10.5965 ± 0.2670**.
 
+² The optimized ensemble figure is recorded in the teammate’s journal, with population fold standard deviation (`ddof=0`); it is not the Kaggle score. Fresh verification of the submission recipe gave **4.2160 ± 0.0724** (sample fold standard deviation). See the [merge review](docs/OPTIMIZED_MERGE_REVIEW.md) for checks and report provenance.
+
 Other rows use five-fold `GroupKFold` on `patient_id`; ± denotes sample standard deviation across fold RMSEs. These are **local validation results**, not Kaggle leaderboard scores. The unseeded string encoder causes small differences between runs. See the [audit](docs/DAY2_AUDIT.md) for historical results, exact configurations and verification details.
 
-### Best current model
+### Best current team submission
 
-The submission variant combines `TableVectorizer` with `HistGradientBoostingRegressor`, using `learning_rate=0.03`, `max_leaf_nodes=63`, `max_iter=1000`, `l2_regularization=1` and `random_state=0`.
+Yanice’s optimized branch, now merged into `main`, is the version associated
+with the team-reported **3.966 Kaggle public score**. Its completion script
+averages two predictors equally: a general HGBR and a specialist that routes
+visits to separate models according to whether the observed OFF score is
+missing. A full-data HGBR is fitted as a fallback for undersized specialist
+slices. Each HGBR uses `learning_rate=0.05`, `max_leaf_nodes=63`,
+`max_iter=1000`, `l2_regularization=1`, `early_stopping=True`, and `random_state=0`.
+Final predictions are clipped to [0, 132].
 
-Its 32 inputs include the 11 raw clinical/categorical features, disease duration, visit timing, patient-level ON/OFF summaries, neighboring OFF measurements, a trajectory slope and missingness indicators. `patient_id` is used for grouping and then removed from model inputs. The additional ON median/minimum/maximum distinguish this model from the 29-feature tuning script.
+The 58 inputs include the raw clinical/categorical features, patient ON/OFF
+summaries, **age-based interpolation**, trajectory slopes, distances to observed
+visits, missingness indicators and medication-exposure proxies. This fixes the
+earlier model’s use of CSV index spacing for interpolation. `patient_id` is
+used for grouping and then removed from model inputs.
 
-The audit found no target-derived features or patient overlap in the outer validation folds. Limitations remain: tuning reuses those folds, internal early stopping is row-based, trajectory features assume batch access to the supplied visits, and the existing interpolation feature uses CSV index spacing rather than age. These are documented rather than hidden behind the score.
+The earlier experiments, 29/32-feature variants, workbook answers and audit
+remain available. The [optimized merge review](docs/OPTIMIZED_MERGE_REVIEW.md)
+documents the added code, validation checks and remaining limitations:
+selection on reused folds, row-based internal early stopping, batch access to
+patient visits and heuristic medication proxies. The recorded Skore reports
+for the optimized branch evaluate its HGBR component, not the whole ensemble.
 
 ## Run the project
 
@@ -84,24 +103,24 @@ With the environment active, run experiments from the repository root in **Bob**
 
 ```bash
 python experiments/04_hgbr.py
-python experiments/07_features_submit.py
+python experiments/_07_features_optimized_complete.py
 ```
 
 The second command uses the selected configuration without repeating the tuning grid. It generates:
 
 ```text
-submissions/07_features_32.csv
+submissions/07_features_optimized.csv
 ```
 
-The script checks the template’s exact columns (`Index,target`), row count, ID order and finite predictions before saving with `index=False`. It also recomputes grouped out-of-fold errors. Experiment scripts can publish reports to the configured Skore Hub; generating an offline CSV alone does not establish competition eligibility.
+The script checks the template’s exact columns (`Index,target`), row count, ID order and finite predictions before saving with `index=False`. It also evaluates the HGBR component using grouped CV; its printed ensemble score is explicitly historical. Experiment scripts can publish reports to the configured Skore Hub; generating an offline CSV alone does not establish competition eligibility.
 
-For a valid Bobathon submission, follow the [official instructions](docs/DAY2.md): generate/review the work in Bob, obtain the **matching EstimatorReport URL**, include it in Kaggle’s Submission Description, and use a fresh report key for each new submission. The report and CSV names must match. Confirm the linked team report’s model before associating it with a regenerated CSV.
+For a valid Bobathon submission, follow the [official instructions](docs/DAY2.md): generate/review the work in Bob, obtain the **matching EstimatorReport URL**, include it in Kaggle’s Submission Description, and use a fresh report key for each new submission. The report and CSV names must match. The existing optimized Hub reports cover component B only. Obtain a report for the actual ensemble before using a regenerated ensemble CSV for a new competition submission; do not substitute the component report.
 
 ### 4. Check the setup
 
 ```bash
 python -m pytest tests/test_setup.py
-python -m pytest tests/smoke/test_01_dummy.py
+python -m pytest tests/smoke
 ```
 
 The setup suite requires local Bob configuration and authenticated Hub access. The smoke test requires downloaded data. These are not credential-free CI checks.
@@ -111,6 +130,7 @@ The setup suite requires local Bob configuration and authenticated Hub access. T
 | Document | Contents |
 |---|---|
 | [Workbook answers](docs/WORKBOOK_ANSWERS.md) | Answers to every Day 1 and Day 2 workbook question, with evidence and explicit limits |
+| [Optimized merge review](docs/OPTIMIZED_MERGE_REVIEW.md) | Yanice’s improved model, score attribution, fixes and merge verification |
 | [Day 2 audit](docs/DAY2_AUDIT.md) | Experiment walkthrough, leakage checks, reproducibility and submission validation |
 | [Experiment journal](journal/JOURNAL.md) | Historical experiments, decisions and next ideas |
 | [Exploratory analysis](data/eda.md) | Initial EDA and pointers to corrected current measurements |
@@ -126,7 +146,7 @@ journal/           Experiment methods and historical results
 docs/              Original guides, workbook answers and team audit
 data/              EDA code/notes; downloaded CSVs stay local
 submissions/       Generated Kaggle CSVs (local, Git-ignored)
-tests/             Setup and baseline smoke checks
+tests/             Setup, baseline and optimized-workflow regression checks
 ```
 
 ## Acknowledgements

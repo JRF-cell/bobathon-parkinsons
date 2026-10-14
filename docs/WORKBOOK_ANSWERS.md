@@ -11,6 +11,12 @@ It opens a sign-in page in the review environment, so its contents and model
 identity have not been independently checked. A Skore validation metric must
 not be relabeled as a Kaggle public leaderboard metric.
 
+> Merge update: the **3.966 Kaggle public score** belongs to Yanice’s optimized
+> branch. Its journal records ensemble CV **4.2176 ± 0.0686** (population fold
+> standard deviation), and its output is `submissions/07_features_optimized.csv`.
+> See the [merge review](OPTIMIZED_MERGE_REVIEW.md) for the preserved old models,
+> the new model and limitations of its component-only Hub reports.
+
 ## Day 1 — §2: Explore the data
 
 ### Q1. How many visits/patients, and how many visits per patient?
@@ -164,16 +170,17 @@ protocol and sampled rows also differ.
 The team reports a **Kaggle public score of 3.966** (2026-10-14). The supplied
 [Skore report](https://skore.probabl.ai/parkinpredict/bobathon-esilv/estimators/83726)
 is linked separately; it requires sign-in in the review environment.
-The exact uploaded CSV/model was not identified, so this score should not be
-silently assigned to the regenerated `07_features_32.csv`.
+The team subsequently confirmed that **3.966 belongs to the optimized branch**,
+whose completion script produces `07_features_optimized.csv`, rather than the
+32-feature model. The optimized journal reports grouped CV **4.2176**, a gap
+of **0.2516** above the public score. The submitted file’s exact bytes have not
+been independently compared with a regenerated artifact.
 
-For context, 3.966 is **0.5154 below** the current 32-feature grouped-CV mean
-of 4.4814. There is no matching row-holdout evaluation of that model here.
+No matching random-row evaluation of this optimized ensemble is recorded.
 Comparing its Kaggle result against Ridge's 10.4877 row score would compare
 different models, not isolate the validation strategy. Therefore the requested
-same-model “which split is closer?” conclusion is not established by these
-records. The public score and local grouped score are both recorded without
-inventing that missing comparison.
+same-model “which split is closer?” conclusion still cannot be established;
+the available grouped-CV/public-score comparison is now explicitly recorded.
 
 **Grouped CV remains the appropriate selection protocol** because the
 competition holds out patients. A lower public score can reflect the held-out
@@ -270,6 +277,9 @@ imputation made a smaller difference (~0.04 RMSE).
 
 ### Q2. What do the largest errors have in common?
 
+The following is the retained pre-optimized analysis, not an error analysis of
+Yanice’s newer ensemble.
+
 For the **32-feature submission variant**, the audited top 50 absolute OOF
 errors range from about **18.9 to 31.1**. Compared with the full training set:
 
@@ -297,3 +307,14 @@ experiment could test dose–delay interactions or a dose × decay feature,
 after checking the units and assumptions. Any decay parameter must be chosen
 using training folds, followed by the same patient-grouped validation. This
 is a proposed experiment, not a validated improvement or a clinical claim.
+
+### Follow-up after merging the optimized branch
+
+The “next experiment” above was implemented: `features_optimized.py` adds
+absorption/decay proxies, ON interpolation and trajectories, observation counts,
+distances and robust slopes. The new ensemble’s recorded mean RMSE is 4.2176.
+These changes were introduced together, so their individual contributions
+cannot be inferred from the combined improvement alone. The constants are
+heuristic time scales, and zero-filling LEDD inside the proxies is a modeling
+convention rather than proof that a patient was untreated. The earlier
+workbook answers remain the record of what was known at each exercise stage.
