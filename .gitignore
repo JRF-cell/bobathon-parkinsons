@@ -34,3 +34,7 @@ skills/
 # local git worktrees
 .worktrees/
 *.egg-info/
+
+# Competition downloads and generated EDA pages stay local.
+/data/*.csv
+/data/eda_*.html

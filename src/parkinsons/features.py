@@ -8,6 +8,11 @@ multiple times.
 Per-patient aggregates use only the patient's own rows in X.  Because
 GroupKFold groups entire patients, no aggregate can cross fold boundaries
 (see journal/07_features.md §Leakage analysis for the formal argument).
+
+This is batch prediction: aggregates and ``off_next`` use other supplied
+visits, including later visits, of the same held-out patient. It is not a
+prospective forecast using only information available at the current visit.
+Keep complete patient groups together when calling this function.
 """
 
 from __future__ import annotations
@@ -67,7 +72,7 @@ def add_features(X: pd.DataFrame) -> pd.DataFrame:
         for agg in ("mean", "median", "min", "max"):
             X[f"{col}_{agg}"] = X.groupby("patient_id")[col].transform(agg)
 
-    # off/on of the previous and next visit (sorted by age within patient)
+    # OFF of the previous and next visit (sorted by age within patient).
     # We sort within each patient group to get lag/lead correctly, then
     # restore the original row order so that positional cv_splits stay valid.
     original_order = X.index
@@ -76,15 +81,15 @@ def add_features(X: pd.DataFrame) -> pd.DataFrame:
     X["off_next"] = X.groupby("patient_id")["off"].shift(-1)
     X = X.loc[original_order]
 
-    # Linear interpolation of off over age — per patient
-    # Strategy: for each patient, build (age, off) pairs, interpolate,
-    # and write back to the same positions.
+    # Historical implementation: interpolate OFF over the DataFrame index
+    # (the CSV's Index), NOT age. Preserve this behavior for reproducibility;
+    # changing to age-based interpolation would require a new CV evaluation.
     off_interp = X["off"].copy()
     for pid, grp in X.groupby("patient_id"):
         if grp["off"].notna().sum() >= 2:
             interp_vals = (
                 grp["off"]
-                .interpolate(method="index")  # uses the (integer) positional index
+                .interpolate(method="index")  # numeric index labels, not positions
             )
             off_interp.loc[grp.index] = interp_vals
     X["off_interp"] = off_interp

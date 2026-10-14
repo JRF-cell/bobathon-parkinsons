@@ -10,12 +10,19 @@ decisions.
 
 _Generated from `data/eda.py` on 2026-10-07._
 
+> Follow-up (2026-10-14): this is the historical EDA narrative. See the
+> [workbook answers](../docs/WORKBOOK_ANSWERS.md) for recomputed full-data
+> statistics, including correlations, visit counts and cohort missingness.
+> The official challenge context confirms that observed ON/OFF and LEDD are
+> supplied inputs; `target` is the unbiased OFF score, not a composite score.
+> HGBR handles numeric NaNs natively, while Ridge requires imputation.
+
 ## Dataset at a glance
 
 - **Tables:** 1 training table (X_train merged with y_train); 1 test table (X_test, no target)
-- **Shape:** 44,590 rows × 12 columns (train); 11,013 rows × 11 columns (test)
+- **Shape:** 44,590 training visits and 11,013 test visits; 12 input columns excluding `Index` in both, plus a separate training target
 - **Target:** `target` — continuous float (regression: UPDRS score prediction)
-- **Rich report:** [eda_train.html](eda_train.html)
+- **Rich report:** `eda_train.html` (generated locally with `python data/eda.py`; not published)
 
 ## Per-column findings
 
@@ -28,8 +35,8 @@ _Generated from `data/eda.py` on 2026-10-07._
 | `age_at_diagnosis` | float64 | 5.2% | 563 | Small missingness |
 | `age` | float64 | 0% | 1,150 | Age at assessment |
 | `ledd` | float64 | **36.6%** | 1,320 | Levodopa equivalent daily dose — heavy missingness |
-| `time_since_intake_on` | float64 | **46.4%** | 64 | Minutes since last "ON" dose — heavy missingness |
-| `time_since_intake_off` | float64 | **78.8%** | 178 | Minutes since last "OFF" dose — very heavy missingness |
+| `time_since_intake_on` | float64 | **46.4%** | 64 | Delay since intake at ON assessment — heavy missingness |
+| `time_since_intake_off` | float64 | **78.8%** | 178 | Delay since intake at OFF assessment — very heavy missingness |
 | `on` | float64 | **29.6%** | 80 | UPDRS motor score in ON state |
 | `off` | float64 | **42.4%** | 93 | UPDRS motor score in OFF state — strong predictor |
 | `target` | float64 | 0% | 867 | **Target**: no missing values |

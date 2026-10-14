@@ -37,11 +37,13 @@ def load_test_dataset() -> pd.DataFrame:
     """Return ``X_test`` for the Kaggle submission CSV.
 
     Reads ``data/X_test.csv`` and preserves the ``Index`` column needed
-    by the competition. Applies the same column layout as ``load_dataset``.
+    by the competition. Unlike ``load_dataset``, this leaves ``Index`` as
+    a column. Set it as the index before feature engineering so it cannot
+    become a predictor and predictions retain the original test-row order.
 
     Returns
     -------
     pd.DataFrame
-        Test feature matrix with the same columns as the training ``X``.
+        Raw test features plus the submission identifier column ``Index``.
     """
     return pd.read_csv(_DATA_DIR / "X_test.csv")

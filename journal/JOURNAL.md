@@ -10,6 +10,15 @@ stem).
 
 ## Status
 
+- **Kaggle public score:** **3.966**, team-reported on 2026-10-14; exact uploaded CSV not specified.
+- **Workbook:** [Day 1 and Day 2 answers](../docs/WORKBOOK_ANSWERS.md).
+- **Team-supplied Hub report:** [EstimatorReport 83726](https://skore.probabl.ai/parkinpredict/bobathon-esilv/estimators/83726); model identity and metrics require authenticated inspection.
+- **2026-10-14 audit:** see [Day 2 audit](../docs/DAY2_AUDIT.md) for local
+  verification, submission checks and limitations. Scores below are historical
+  run records. The two 07 scripts use different feature sets (29 versus 32);
+  the submission variant now uses the separate key/CSV `07_features_32`.
+  Independent verification: **4.4807 ± 0.0653** grouped-CV RMSE for the
+  32-feature model; Bob regeneration and a matching Hub URL remain required.
 - **Project / dataset:** Parkinson's UPDRS score regression
 - **Goal:** Predict UPDRS motor scores for Parkinson's patients from clinical features (longitudinal data, multiple visits per patient).
 - **Last experiment:** 07_features - done
@@ -18,12 +27,9 @@ stem).
 - **Workspace decisions** (immutable unless the user pivots):
   - tabular library: pandas - recorded: 2026-10-07
   - env manager: pip+venv - recorded: 2026-10-07
-  - agent feature: <installed> - recorded: <YYYY-MM-DD>
-  - optional features: <none> - recorded: <YYYY-MM-DD>
-  - package name (`src/<pkg>/`): <pkg> - recorded: <YYYY-MM-DD>
+  - package name: `parkinsons` (`src/parkinsons/`)
   - skore mode: hub - recorded: 2026-10-07
-  - skore hub workspace: <hub-workspace-name | n/a> - recorded: <YYYY-MM-DD>
-  - skore mlflow tracking uri: <mlflow-tracking-uri | n/a> - recorded: <YYYY-MM-DD>
+  - skore hub workspace: `parkinpredict` (team-supplied report URL)
   - student prior: beginner - recorded: 2026-10-07
   - CV splitter family: GroupKFold (patient_id) - recorded: 2026-10-07
 

@@ -1,5 +1,12 @@
 # 07_features
 
+> Audit clarification (2026-10-14): the historical results below need the
+> qualifications in [DAY2_AUDIT.md](../docs/DAY2_AUDIT.md). `off_interp` uses
+> numeric CSV index labels, not age. The tuning script uses 29 features; the
+> continuation/submission script uses 32. Patient-disjoint test data permits
+> using the visits supplied together for batch prediction; it does not prove
+> that all lifetime visits are available, or justify prospective forecasting.
+
 <!--
 Design note for experiments/07_features.py (same stem, one to
 one with the script). Write and agree on it before creating the script.

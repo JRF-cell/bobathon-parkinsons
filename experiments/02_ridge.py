@@ -7,7 +7,7 @@
 #           and keep the alpha with the lowest RMSE.
 # **Splitter:** random 80/20 visit holdout (splitter=0.2) — same as 01_dummy
 #               so results are directly comparable. ⚠ patient leakage is present;
-#               grouped CV is introduced in experiment 03.
+#               grouped Ridge is evaluated in 04_hgbr.py (no 03 script exists).
 # **Result:** filled in after the run.
 
 # %%

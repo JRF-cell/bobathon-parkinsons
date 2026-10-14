@@ -188,6 +188,11 @@ X_best_ablation = _config_map[best_name]
 # %% [markdown]
 # ## Step 3 — Light hyperparameter tuning of HGBR
 #
+# The same grouped folds select features and hyperparameters: the winning
+# RMSE is a selection score, not an independent final-test estimate.
+# HGBR's internal early-stopping split is row-level within each outer train
+# fold; the outer validation patients remain held out.
+#
 # Grid: learning_rate ∈ {0.03, 0.1}, max_leaf_nodes ∈ {15, 31, 63},
 #       l2_regularization ∈ {0, 1}, max_iter=1000, early_stopping=True.
 # Total: 2 × 3 × 2 = 12 configs.
@@ -306,7 +311,8 @@ est_report = skore.EstimatorReport(
 if _hub_available and project is not None:
     project.put("07_features_estimator", est_report)
     print("EstimatorReport '07_features_estimator' pushed to hub.")
-    # Print the URL for Kaggle
+    # project.put prints the actual EstimatorReport URL to use on Kaggle.
+    # The API/workspace URL assembled below is not a valid report permalink.
     hub_url = cfg.get("hub_url", "").rstrip("/")
     workspace = cfg.get("workspace", "")
     print(f"\n=== Skore Hub URL ===")
